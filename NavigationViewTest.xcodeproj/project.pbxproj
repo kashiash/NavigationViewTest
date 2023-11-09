@@ -28,7 +28,7 @@
 		76952C0B2AFB9943005BC72D /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		76952C152AFBA21E005BC72D /* FirstTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstTabView.swift; sourceTree = "<group>"; };
 		76952C172AFBA99A005BC72D /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
-		76952C192AFC26D3005BC72D /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
+		76952C192AFC26D3005BC72D /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Book.swift; path = ../Book.swift; sourceTree = "<group>"; };
 		76952C1B2AFC284F005BC72D /* SecondViewTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewTab.swift; sourceTree = "<group>"; };
 		76952C1D2AFC2996005BC72D /* BookDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailView.swift; sourceTree = "<group>"; };
 		76952C1F2AFC2E14005BC72D /* Readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
@@ -65,6 +65,7 @@
 		76952C022AFB9941005BC72D /* NavigationViewTest */ = {
 			isa = PBXGroup;
 			children = (
+				76952C212AFD1B65005BC72D /* Model */,
 				76952C122AFB9F80005BC72D /* FirstTab */,
 				76952C132AFB9F93005BC72D /* SecondTab */,
 				76952C142AFB9FA6005BC72D /* ThirdTab */,
@@ -73,7 +74,6 @@
 				76952C072AFB9943005BC72D /* Assets.xcassets */,
 				76952C092AFB9943005BC72D /* NavigationViewTest.entitlements */,
 				76952C0A2AFB9943005BC72D /* Preview Content */,
-				76952C192AFC26D3005BC72D /* Book.swift */,
 			);
 			path = NavigationViewTest;
 			sourceTree = "<group>";
@@ -109,6 +109,14 @@
 			children = (
 			);
 			path = ThirdTab;
+			sourceTree = "<group>";
+		};
+		76952C212AFD1B65005BC72D /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				76952C192AFC26D3005BC72D /* Book.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
