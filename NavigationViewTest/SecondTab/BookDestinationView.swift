@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct BookDetailView: View {
+struct BookDestinationView: View {
     let book: Book
     var body: some View {
         VStack {
@@ -22,5 +22,5 @@ struct BookDetailView: View {
 }
 
 #Preview {
-    BookDetailView(book: Book(title: "Jebać PiS"))
+    BookDestinationView(book: Book(title: "Jebać PiS"))
 }
