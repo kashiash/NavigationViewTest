@@ -7,17 +7,13 @@
 
 import SwiftUI
 
-enum SelectionState:Hashable {
-    case movie(Movie)
-    case song(Song)
-    case book(Book)
-    case settings
-}
+
 
 struct ThirdTabView: View {
     @StateObject var model = ModelDataManager()
+    @StateObject var navigationStateManager = NavigationStateManager()
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationStateManager.selectionPath) {
             RootView(model: model)
                 .navigationDestination(for: SelectionState.self) { state in
                     Group {
@@ -32,10 +28,13 @@ struct ThirdTabView: View {
                             SettingsView()
                         }
                     }
-                    .environmentObject(model)
+
                 }
 
         }
+        .environmentObject(model)
+        .environmentObject(navigationStateManager)
+        .environment(\.colorScheme, .dark)
     }
 }
 

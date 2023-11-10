@@ -1,5 +1,9 @@
 
 
+NavigationStack - krew pot lzy i cierpienie
+
+https://www.youtube.com/watch?v=piAiy5vlC9k&t=3203s
+
 Temat pochodzi z prezentacji WWDC związanej z nawigacją w SwiftUI Cookbook. Więc wcześniej mieliśmy widok nawigacji, a żeby zmienić ten styl, musieliśmy użyć stylu widoku nawigacji na stosie, co oznaczało typową nawigację na iPhone'ie, gdzie mamy tylko główny ekran, a potem dodajemy nowe widoki na wierzch, czyli nakładamy nakładki na siebie. Nowe API ma specjalny widok na to, którym jest nawigacyjny stos. Inny styl nawigacji to podwójna kolumna lub wielokolumnowy. Jest to interesujące dla macOS i iPodOS. Dla tego mamy osobny widok, którym jest nawigacyjny widok podziału. 
 
 |                          Poprzednio                          | Obecnie                         |
@@ -765,61 +769,222 @@ struct ContentView: View {
 
 Mamy nasze zkładki na głównym oknie aplikacji. Teraz, przystąpmy do uruchomienia tego. Przejdźmy do trzeciej karty, a następnie kliknijmy na jedną z piosenek. W porządku, pojawił się krytyczny błąd. Wygląda na to, że nie można odnaleźć modelu środowiskowego `modelDataManager`. Widok szczegółowy dla piosenki, który próbuję użyć, nie ma dostępu do tego środowiska. Teraz muszę sprawdzić, gdzie dokładnie tworzę instancję mojego widoku szczegółowego dla piosenki. Zrobiłem to w moim widoku trzeciej karty tutaj, a jest to destynacja nawigacyjna `songDetailView`. Później dodałem to jako `environmentObject`, zakładając, że dostanę do tego dostęp wszędzie, ale niestety tak się nie dzieje. Stąd moja sugestia dotycząca modyfikatora nawigacji. Musisz również dodać to tutaj. Stworzymy więc grupę, ponieważ to jest niezbędne. Prawdopodobnie bardziej zalecane jest dodanie tego do wszystkich widoków zawartych w tej grupie.
 
+```swift
+struct ThirdTabView: View {
+    @StateObject var model = ModelDataManager()
+    var body: some View {
+        NavigationStack {
+            RootView(model: model)
+                .navigationDestination(for: SelectionState.self) { state in
+                    Group {
+                        switch state {
+                        case .song(let song):
+                            SongDetailView(song: song)
+                        case .movie(let movie):
+                            MovieDetailView(movie: movie)
+                        case .book(let book):
+                            BookDetailView(book: book)
+                        case .settings:
+                            SettingsView()
+                        }
+                    }
+                    .environmentObject(model)
+                }
+        }
+              NavigationStack {
+            RootView(model: model)
+                .navigationDestination(for: SelectionState.self) { state in
+                    Group {
+                        switch state {
+                        case .song(let song):
+                            SongDetailView(song: song)
+                        case .movie(let movie):
+                            MovieDetailView(movie: movie)
+                        case .book(let book):
+                            BookDetailView(book: book)
+                        case .settings:
+                            SettingsView()
+                        }
+                    }
+
+                }
+
+        }
+        .environmentObject(model)
+    }
+}
+```
+
+Jak widać, owijam moje `switch case` tutaj w grupę. A jeszcze leepiej w nadrzędne `NavigationStack` Dzięki temu ten modyfikator widoku jest dodawany do wszystkich moich widoków wewnątrz niego. Mam nadzieję, że teraz wszystko działa. Przejdźmy do mojej trzeciej karty. I tak, mamy szczegóły i widzę wszystkie piosenki. Nie działa. 
+
+`A NavigationLink is presenting a value of type “Song” but there is no matching navigationDestination declaration visible from the location of the link. The link cannot be activated.`
+
+`Note: Links search for destinations in any surrounding NavigationStack, then within the same column of a NavigationSplitView.`
+
+Okej, przynajmniej teraz informacje wydają się być przydatne. Łącze prezentuje wartość typu piosenka, ale nie ma zadeklarowanej odpowiadającej mu widocznej destynacji nawigacji. I mówią ci także, jak właściwie szukają tych destynacji nawigacji. Najpierw sprawdzają otaczający stos nawigacyjny. Idą w górę drzewa widoku i jeśli tam nic nie znajdą, sprawdzają podział nawigacji. Jest to możliwe, możesz je układać jedno wewnątrz drugiego. Okej, zobaczmy, co zrobiłem w widoku szczegółowym dla piosenki. Ah tak, rzeczywiście użyłem wartości `song`, a nie mojej nowej wartości wyboru. 
+
+```swift
+                ForEach(model.songs) { song in
+                  //  NavigationLink(value: song) {
+                    NavigationLink(value: SelectionState.song(song)) {
+                        Label(song.title,systemImage: "music.note")
+                    }
+                }
+```
+
+Spróbujmy jeszcze raz. Okej, teraz wszystko wydaje się działać. Okej, więc upewnij się, że dodajesz wszystkie obiekty środowiska ponownie w NavigationDestination. 
+
+Mozemy dodac jeszcze jedna zmienna :
+
+```swift
+.environment(\.colorScheme, .dark)
+```
+
+Okej, to jest ciemny. Pozwoli nam zoabczyć jaki jest zakres zmiennych srodowiskowych ustawionych w tym miejscu. Tak, naprawdę upewnij się, gdzie umieszczasz właściwości środowiska, na najwyższym poziomie, wokół stosu nawigacji. W ten sposób wszystkie elementy je dostają.
+
+​	Ponowne dodawanie nawigacji kontrolowanej z poziomu kodu. Musiałbym teraz przejść do NavigationStack i uzyskać dostęp do mojej właściwości `path`, ponieważ chcę to przekazać w dół do wszystkich moich widoków szczegółowych i naprawdę nie chcę przekazywać tego ręcznie. Będę używał tego samego triku z obiektem obserwowanym i następnie dodam to do środowiska, co oznacza, że muszę utworzyć inny widok modelu dla stanu nawigacji. I jest to piąty plik. Zawsze trudno nazwać to nawigacja. Menedżer stanu nawigacji. Prawdopodobnie muszę zmienić nazwy rzeczy. I jeśli chcesz, możesz również utworzyć kolejne dla swoich widoków modeli tutaj. Więc jest to klasa spełniająca protokół `ObservableObject` i właściwość, którą chcę przechowywać, jest faktycznie zdefiniowana jako stan wyboru. Więc również przenoszę to tam lub może do osobnego pliku. Więc tutaj jest to opublikowane dla `selectionPath`, a teraz jest to tablica, chociaż to jest kolekcja, a ścieżka jest kolekcją moich stanów i są one reprezentowane przez ten sam typ, którym jest mój stan wyboru. To tyle. I teraz mogę tego użyć ponownie jako `stateObject` naszego menedżera stanu nawigacji. Instancja `navigationStateManager` i mogę przekazać powiązanie w moim stosie nawigacji do `selectionPath` mojego menedżera stanu nawigacji. Tak samo chciałem to dodać tutaj do środowiska.
+
+```swift
+struct ThirdTabView: View {
+    @StateObject var model = ModelDataManager()
+    @StateObject var navigationStateManager = NavigationStateManager()
+    var body: some View {
+        NavigationStack {
+          ...
+        }
+        .environmentObject(model)
+        .environmentObject(navigationStateManager)
+        .environment(\.colorScheme, .dark)
+```
+
+Dodaję obiekt środowiska dla menedżera stanu nawigacji, a teraz możemy używać tego wszędzie w jednym z naszych widoków szczegółowych. Więc tutaj w widoku szczegółowym dla piosenki mogę dodać kolejny przycisk. Okej, najpierw muszę faktycznie pobrać ten obiekt środowiska. Obiekt środowiska `var navigation` typu `navigation state manager` i nie zapomnij dodać tego do podglądu. 
+
+```swift
+import SwiftUI
+
+struct SongDetailView: View {
+    let song: Song
+    @EnvironmentObject var model: ModelDataManager
+    @EnvironmentObject var navigationState: NavigationStateManager
+    var body: some View {
+        VStack{
+            Image(systemName: "music.mic.circle")
+                .font(.largeTitle)
+            Text("Song detail")
+                .font(.title)
+            Text(song.title)
+            Text(song.artist)
+            Text("\(song.year)")
+            Divider()
+            VStack(alignment: .leading) {
+                Text("Inne piosenki do polubienia")
+                    .font(.callout)
+                
+                ForEach(model.songs) { song in
+                    //  NavigationLink(value: song) {
+                    NavigationLink(value: SelectionState.song(song)) {
+                        Label(song.title,systemImage: "music.note")
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    SongDetailView(song: Song.examples().randomElement()!)
+        .environmentObject(ModelDataManager())
+        .environmentObject(NavigationStateManager())
+}
+```
 
 
-Dobrze, więc owijam moje `switch case` tutaj w grupę. Więc ten modyfikator widoku jest dodawany do wszystkich moich widoków wewnątrz niego. Mam nadzieję, że teraz wszystko działa. Przejdźmy do mojej trzeciej karty. I tak, mamy szczegóły i widzę wszystkie piosenki. Nie działa. Okej, przynajmniej teraz informacje wydają się być przydatne. Łącze prezentuje wartość typu piosenka, ale nie ma zadeklarowanej odpowiadającej mu widocznej destynacji nawigacji. I mówią ci także, jak właściwie szukają tych destynacji nawigacji. Najpierw sprawdzają otaczający stos nawigacyjny. Idą w górę drzewa widoku i jeśli tam nic nie znajdą, sprawdzają podział nawigacji. Jest to możliwe, możesz je układać jedno wewnątrz drugiego. Okej, zobaczmy, co zrobiłem w widoku szczegółowym dla piosenki. Ah tak, rzeczywiście użyłem wartości `song`, a nie mojej nowej wartości wyboru. Więc dziękuję za bardzo pouczającą pomoc. Nie to dziwne, trzeba interpretować jakąś dziwną mowę. Chodzi mi o to, że to było w bardzo czytelny sposób wyjaśnione. Ładnie, ładnie. Spróbujmy jeszcze raz. Okej, teraz wszystko wydaje się działać. Okej, więc upewnij się, że dodajesz wszystkie obiekty środowiska ponownie w destynacjach nawigacji. Nawet nie jestem pewien, czy to także dotyczy wartości środowiskowych, na przykład dla schematu kolorów.
 
-> Dark. OK this is dark. OK yeah it's the same for all the color colors and stuff. Not really sure this is kind of annoying. Maybe if I put it outside. OK so you have to put it outside of the stack. And let's see if this is also working for the navigation state for environment objects. Yes. So really make sure where you put the environment properties at the most highest level around the navigation stack. So all of the elements get this. And now I can actually remove the group again. So it's much more clean and I don't need to add this multiple times. Adding the programmatic navigation again. I would need to go here and access my path property because I want to handle this downwards to all my detail views and I don't really want to you know pass this manually with bindings everywhere. I will use the same trick of a observable object and then adding it in the environment which means I need to create another view model for the navigation state. And this is the fifth file. It's always difficult to name this navigation. Navigation state manager. I probably have to rename stuff. And if you want you can also create another for your view models here. So this is a class conforming to observable object and the property that I want to store is actually defined with the selection state. So I'm also moving it over there or maybe in a separate file. So here it's published for selection path and this is now an array of I mean it's a collection or the path is a collection of my states and they're all represented by the same type which is my selection state. So this is it. And now I can use this here again as a state object of our navigation state manager. Navigation state manager instance and I can give a binding in my navigation stack to my navigation state managers selection path. Okay same I wanted to add this here in the environment. 
+```swift
+struct SongDetailView: View {
+    let song: Song
+    @EnvironmentObject var model: ModelDataManager
+    @EnvironmentObject var navigationState: NavigationStateManager
+    var body: some View {
+        VStack{
+            Image(systemName: "music.mic.circle")
+                .font(.largeTitle)
+            Text("Song detail")
+                .font(.title)
+            Text(song.title)
+            Text(song.artist)
+            Text("\(song.year)")
+            Divider()
+            VStack(alignment: .leading) {
+                Text("Inne piosenki do polubienia")
+                    .font(.callout)
+                
+                ForEach(model.songs) { song in
+                    //  NavigationLink(value: song) {
+                    NavigationLink(value: SelectionState.song(song)) {
+                        Label(song.title,systemImage: "music.note")
+                    }
+                }
+            }
+            Button("Go to root",systemImage: "gobackward") {
+                navigationState.goToRoot()
+            }
+        }
+        .navigationTitle("Dupa zbita")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    navigationState.goToSettings()
+                } label: {
+                    Image(systemName: "gear")
+                }
+            }
+        }
+    }
+}
 
-Ciemny. Okej, to jest ciemny. Okej, tak samo jest z wszystkimi kolorami i innymi rzeczami. Nie jestem pewien, czy to jest irytujące. Być może, jeśli umieściłbym to na zewnątrz. Okej, więc musisz umieścić to na zewnątrz stosu. Zobaczmy, czy to działa również dla stanu nawigacji dla obiektów środowiska. Tak, naprawdę upewnij się, gdzie umieszczasz właściwości środowiska, na najwyższym poziomie, wokół stosu nawigacji. W ten sposób wszystkie elementy je dostają. I teraz mogę rzeczywiście usunąć grupę ponownie. Jest znacznie czystsze i nie muszę dodawać tego wielokrotnie. Ponowne dodawanie nawigacji programowej. Musiałbym teraz przejść tutaj i uzyskać dostęp do mojej właściwości `path`, ponieważ chcę to przekazać w dół do wszystkich moich widoków szczegółowych i naprawdę nie chcę przekazywać tego ręcznie związując wszędzie. Będę używał tego samego triku z obiektem obserwowanym i następnie dodam to do środowiska, co oznacza, że muszę utworzyć inny widok modelu dla stanu nawigacji. I jest to piąty plik. Zawsze trudno nazwać to nawigacja. Menedżer stanu nawigacji. Prawdopodobnie muszę zmienić nazwy rzeczy. I jeśli chcesz, możesz również utworzyć kolejne dla swoich widoków modeli tutaj. Więc jest to klasa spełniająca protokół `ObservableObject` i właściwość, którą chcę przechowywać, jest faktycznie zdefiniowana jako stan wyboru. Więc również przenoszę to tam lub może do osobnego pliku. Więc tutaj jest to opublikowane dla `selectionPath`, a teraz jest to tablica, chociaż to jest kolekcja, a ścieżka jest kolekcją moich stanów i są one reprezentowane przez ten sam typ, którym jest mój stan wyboru. To tyle. I teraz mogę tego użyć ponownie jako `stateObject` naszego menedżera stanu nawigacji. Instancja `navigationStateManager` i mogę przekazać powiązanie w moim stosie nawigacji do `selectionPath` mojego menedżera stanu nawigacji. Tak samo chciałem to dodać tutaj do środowiska.
+#Preview {
+    NavigationStack {
+        SongDetailView(song: Song.examples().randomElement()!)
+            .environmentObject(ModelDataManager())
+            .environmentObject(NavigationStateManager())
+    }
+}
+```
 
-> So I add the environment object for navigation state manager and now we can use this anywhere in one of our detail views. So here in the song detail view I can add another button. Okay first I actually need to grab this environment object. Environment object var navigation of type navigation state manager and don't forget to add this to the preview. Okay so a text. This is for example interesting for go to route or if you're done or something. Now we could use the navigation state manager and manipulate the selected selection path directly. But because this is probably an action that I would perform a lot and I don't always remember how I'm supposed to do this. You can create your little functions like up to route. So doing this is basically resetting this whole array. So I'm just throwing away all the detail information by resetting this to an empty array. And now my detail becomes a pop to route function. Okay let's try this in the third tab. I go to one of my details and now I can press you go to route and we are going back to the route view. We can also use this for deep linking. Let's say we have here a small button for settings that will bring us into the settings view. Okay maybe I'm starting to get a little bit crowded in this view. But let's add here a toolbar and I don't want to have this placement and visibility. I mean the placement you can also put on the bottom bar. This is new toolbar. No that was not what I wanted. As the icon I'm using here gear. Okay and I need to embed this actually navigation stack. So you have something in the preview. Okay now we have I have this icon there. Okay one of the things is this toolbar is always like where is it going. You could use the navigation bar trailing. This is not working for macOS.
+W rzeczywistości nigdy nie ustawiałem tytułu nawigacji w moim widoku szczegółów ustawień. Więc co najmniej, co musisz zrobić, to wyczyścić tytuł nawigacji. W zasadzie ustawiam go tutaj na pusty lub możesz ustawić go na nową wartość. To jak dotąd mały błąd. Spróbujmy ponownie. Idę do jednego z moich szczegółów piosenek, a potem przechodzę do widoku ustawień i teraz mój stary tytuł jest aktualizowany na pusty. To głębokie łączenie działa całkiem dobrze. Możesz przejść gdzie chcesz. Fajna rzecz w tym menedżerze stanu nawigacji polega także na tym, że możesz dodać funkcjonalność do śledzenia wszystkich dokumentów, wszystkich instancji, które użytkownik przeglądał, wszystkich piosenek i filmów.
 
-Więc dodaję obiekt środowiska dla menedżera stanu nawigacji, a teraz możemy używać tego wszędzie w jednym z naszych widoków szczegółowych. Więc tutaj w widoku szczegółowym dla piosenki mogę dodać kolejny przycisk. Okej, najpierw muszę faktycznie pobrać ten obiekt środowiska. Obiekt środowiska `var navigation` typu `navigation state manager` i nie zapomnij dodać tego do podglądu. Okej, więc tekst. Jest to na przykład interesujące dla "go to route" lub jeśli skończyłeś lub coś w tym stylu. Teraz moglibyśmy użyć menedżera stanu nawigacji i manipulować bezpośrednio ścieżką wyboru. Ale ponieważ jest to prawdopodobnie działanie, które chciałbym wykonywać często i nie zawsze pamiętam, jak powinienem to zrobić. Można tworzyć swoje małe funkcje, takie jak "go to route". Więc robienie tego to właściwie resetowanie całej tej tablicy. Więc po prostu odrzucam wszystkie informacje o szczegółach, resetując to do pustej tablicy. I teraz mój przycisk "szczegóły" staje się funkcją "pop to route". Okej, spróbujmy tego na trzeciej karcie. Przechodzę do jednego ze swoich szczegółów i teraz mogę nacisnąć "go to route" i wracamy do widoku trasy. Możemy również używać tego do głębokich odnośników. Powiedzmy, że mamy tutaj mały przycisk dla ustawień, który przeniesie nas do widoku ustawień. Okej, może zaczynam się troszkę gubić w tym widoku. Ale dodajmy tutaj pasek narzędzi i nie chcę mieć tego ustawienia widoczności. Oznacza to, że możesz także umieścić go na pasku dolnym. To jest nowy pasek narzędzi. Nie, to nie było to, co chciałem. Jako ikony używam tutaj koła zębatego. Okej, i muszę właściwie osadzić ten stos nawigacyjny. Tak, żebyś miał coś w podglądzie. Okej, teraz mam tę ikonę tam. Okej, jedną z rzeczy jest to, że ten pasek narzędzi jest zawsze taki... gdzie jest? Możesz użyć paska nawigacyjnego `trailing`. To nie działa dla macOS.
 
->  Primary action. Okay it's on the right side and now I can say if I mean if I press on this gear icon I actually want to change my navigation state to go to the settings view. Okay maybe let's create another function for this. So what do we want to do? Function go to settings. So my selection path has to change and I don't want to push it on top. So I could if you want to push it on top I would append this new element but I actually want to replace the whole path. We have the selection state dot settings. So now here I can say go to settings. Okay let's try this. I go here and I press on my gear icon. And we are in the settings view. Unfortunately you see okay maybe you don't see it but there is still some remaining thing that I don't like which is this fight which is the title for my previous one. Try again. So if you select the title view you have the navigation title from the song view and now I press on the settings. It does update the main content but it just doesn't update the navigation title. And way to fix this is that my settings detail view I actually never set the navigation title. So the bare minimum you have to do is to clean the navigation title. I'm basically setting it here to empty or you set it to a new value. This is so far a small bug. Try again. I go to one of my song details and then I go to the settings view and now my old title is updated to the empty one. This deep linking works quite fine. You can go wherever you want. The nice thing also about this navigation state manager here is you can add functionality to keep track of all the document all the instances that the user looked at all the songs and movies. 
->
-
-Podstawowa akcja. Okej, znajduje się po prawej stronie i teraz mogę powiedzieć, że jeśli kliknę ten ikonę zębatą, chcę faktycznie zmienić stan nawigacji, aby przejść do widoku ustawień. Okej, może stwórzmy dla tego osobną funkcję. Więc co chcemy zrobić? Funkcja "go to settings". Więc moja ścieżka wyboru musi się zmienić i nie chcę jej dodawać na wierzch. Mogę, jeśli chcę dodać ją na wierzch, po prostu dodać ten nowy element, ale tak naprawdę chcę zastąpić całą ścieżkę. Mamy `selection state.settings`. Więc teraz tutaj mogę powiedzieć "go to settings". Okej, spróbujmy tego. Idę tutaj i naciskam moją ikonę zębatą. I jesteśmy w widoku ustawień. Niestety, zauważysz, okej, może tego nie widzisz, ale nadal pozostaje coś, czego nie lubię, a mianowicie ten tytuł z poprzedniego widoku. Spróbuj ponownie. Jeśli zaznaczysz widok tytułu, masz nawigacyjny tytuł widoku piosenki i teraz naciskam widok ustawień. Aktualizuje główną zawartość, ale po prostu nie aktualizuje tytułu nawigacji. Sposób na rozwiązanie tego problemu to ustawienie tytułu nawigacji w moim widoku szczegółów ustawień. W rzeczywistości nigdy nie ustawiałem tytułu nawigacji w moim widoku szczegółów ustawień. Więc co najmniej, co musisz zrobić, to wyczyścić tytuł nawigacji. W zasadzie ustawiam go tutaj na pusty lub możesz ustawić go na nową wartość. To jak dotąd mały błąd. Spróbujmy ponownie. Idę do jednego z moich szczegółów piosenek, a potem przechodzę do widoku ustawień i teraz mój stary tytuł jest aktualizowany na pusty. To głębokie łączenie działa całkiem dobrze. Możesz przejść gdzie chcesz. Fajna rzecz w tym menedżerze stanu nawigacji polega także na tym, że możesz dodać funkcjonalność do śledzenia wszystkich dokumentów, wszystkich instancji, które użytkownik przeglądał, wszystkich piosenek i filmów.
-
-> So you could create a history timeline of what did you look on before. I just keep track of them collecting them. Or you can do it and go back to the previous ones for example. Do some undo redo with going back and forth in your navigation stack. I prefer to have this enum for all the selections. It makes it a little bit more easy to go around and also deal with situations where you don't actually have a value because then you need to kind of otherwise you need to kind of make up for one. And I don't like that. Lastly I want to talk about state restoration because now every time I launch I will go back to the old state and I want to make the let the user be able to resume at the same state at the same selection in the path. And what we can do is use a default and more specifically seen the scene face because the scene face stores it in the user default and makes it easy to store properties in there. If you have a navigation path. Where did I have a navigation path? Here. I had a navigation path I would have liked. I mean I really would have liked to simply say scene storage path. That would have been would have been very convenient. But this is not working because scene storage doesn't use doesn't allow you to use this type. Scene storage only supports certain types and the values that you can use is bool integer double string URL and data. It basically needs to be raw representable. So we cannot directly save the navigation path like this. We need to first transform it to a data and then save it in the scene storage. I'm not going to do this here I'm just going to do this for a custom type. 
->
 
 Tak więc możesz stworzyć historię oglądania, która pokaże, co użytkownik oglądał wcześniej. Możesz śledzić to, zbierając te informacje. Możesz też użyć ich do powrotu do poprzednich elementów, na przykład do przeprowadzania operacji cofania i ponawiania, przechodząc tam i z powrotem po swoim stosie nawigacyjnym. Ja preferuję używanie tego enuma dla wszystkich wyborów. Ułatwia to poruszanie się i radzenie sobie z sytuacjami, w których faktycznie nie masz wartości, ponieważ w przeciwnym razie musiałbyś jakoś sobie z tym radzić. I tego nie lubię. Na koniec chciałbym poruszyć kwestię przywracania stanu, ponieważ teraz za każdym razem, gdy uruchamiam aplikację, wracam do poprzedniego stanu i chcę umożliwić użytkownikowi wznowienie dokładnie tego samego stanu i tej samej selekcji na ścieżce. Co możemy zrobić, to użyć domyślnego stanu, a dokładniej widzenia sceny, ponieważ widzenie sceny przechowuje to w UserDefaults i ułatwia przechowywanie właściwości w tym miejscu. Jeśli masz nawigacyjną ścieżkę, gdzie miałem nawigacyjną ścieżkę... tutaj. Miałem nawigacyjną ścieżkę, którą chciałbym po prostu zapisać jako `sceneStoragePath`. To byłoby bardzo wygodne. Ale to nie działa, ponieważ `sceneStorage` nie pozwala na użycie tego typu. `sceneStorage` obsługuje tylko określone typy, a wartości, które można w nim przechowywać, to: `bool`, `integer`, `double`, `string`, `URL` i `data`. W zasadzie musi być on reprezentowalny jako surowa wartość. Dlatego nie możemy bezpośrednio zapisać nawigacyjnej ścieżki w ten sposób. Musimy najpierw przekształcić ją w `data`, a następnie zapisać w `sceneStorage`. Nie będę tego robić tutaj, zrobię to tylko dla niestandardowego typu.
 
-> So we can use a scene storage giving it a user default name navigation state or navigation state data. This is a data type optional because we might not have anything. Right now my state is in the navigation state manager. So I would want to save this path as a data to use the default. In order to do this I need to decode and encode this to data. So I'm conforming here to codable. It's going to complain because all of the subtypes need to also be codable. So I need to make my movie song and book also codable. I can just simply add here conformance to this three types and then I go back to my selection state enum which is now codable. So how do I create this data thingy from the selection path. I'm just going to use the easy back and forth conversion trick from the WWDC from the Apple project. So we're using a property with a getter and a setter and in the getter and setter we can transform data back and forth. So this is my data representation. This is a data optional. So I said we need a get and a set. So in the getter we need to create a data from our selection path. So I have to have a JSON encoder to encode my selection path and this might actually fail. This might throw an error so I'm just omitting the errors. Try. And when I set this I get the data that I need to then decode. 
->
+
 
 Tak, możemy użyć `sceneStorage`, przekazując mu nazwę UserDefaults, na przykład `navigationState` lub `navigationStateData`. Jest to typ danych opcjonalnych, ponieważ może się zdarzyć, że nie mamy żadnych danych. Obecnie mój stan jest przechowywany w `navigationStateManager`, więc chcę zapisać tę ścieżkę jako dane, aby użyć domyślnego mechanizmu. Aby to zrobić, muszę zakodować i odkodować te dane. Dlatego tu dodaję zgodność z protokołem `Codable`. Po dodaniu tego protokołu będę musiał zaimplementować go również dla moich typów `Movie`, `Song` i `Book`. Mogę po prostu dodać zgodność z `Codable` dla tych trzech typów. Następnie wracam do mojego enuma `SelectionState`, który teraz jest `Codable`.
 
 Jak stworzyć ten obiekt danych z mojej ścieżki wyboru? Skorzystam z łatwego triku konwersji w przód i wstecz z WWDC od Apple. Używamy własności z getterem i setterem, a w getterze i setterze możemy przekształcać dane tam i z powrotem. Oto moja reprezentacja danych. Jest to typ danych opcjonalnych. Musimy zaimplementować getter i setter. W getterze musimy utworzyć dane z naszej ścieżki wyboru. Muszę użyć `JSONEncoder`, aby zakodować moją ścieżkę wyboru, i to może się nie powieść, więc pomijam obsługę błędów (`try`). Kiedy to ustawiam, mam dane, które muszę potem zdekodować.
 
-> So JSON decoder decode and the type that I need to decode is this array of selection state from the new value which is optional. So I only should do this if I have something. So this is guard let data equal new value else return. Now I can use this to decode and I try. This is a path because I said here try. I might not actually have something and I forgot to say here this is what type. I actually want to now set this to my selection path but only if I have something. So I'm also adding it here to my guard statement. So I cannot do anything with this and I'm not. Otherwise I set my selection path to the decoded one. I'm doing it a little bit different from the WWDC example from the official example from the Apple example because they are actually decode saved the whole navigation state manager properties. Maybe you have multiple in here and I'm also saving all of the data. So I'm saving the movie songs and books that are on the stack and I set them all in case during your this data gets there. So some updates have been done to the songs that are in this array. Next time I'm loading I want to actually use the newer updated versions. So one way of doing this is not saving everything or you can instead of setting here the selected path before a fetch updated new model data for each ID. 
->
+
 
 Więc dekoder JSON dekoduje, a typem, który muszę zdekodować, jest ta tablica stanów wyboru pochodzących z nowej wartości, która jest opcjonalna. Czyli powinienem to zrobić tylko wtedy, gdy mam coś do zdekodowania. Dlatego stosuję konstrukcję guard let, gdzie sprawdzam, czy dane są równe nowej wartości, a jeśli nie są, po prostu wychodzę. Teraz mogę użyć tego do dekodowania i próbuję tego użyć. To jest konieczne, ponieważ używam tutaj słowa kluczowego 'try'. Mogę wcale nie mieć danych, a zapomniałem też podać, jakiego typu są te dane. Teraz chcę ustawić moją ścieżkę wyboru, ale tylko jeśli mam coś do zdekodowania. Dlatego dodaję to także do mojej klauzuli guard. W przeciwnym razie ustawiam moją ścieżkę wyboru na zdekodowany obiekt. Robię to trochę inaczej niż przykład z WWDC, oficjalny przykład od Apple, ponieważ oni zwykle dekodują i zapisują cały stan nawigacji w menedżerze właściwości. Możliwe, że mają ich tam wiele, ale ja zapisuję wszystkie dane. Zapisuję filmy, piosenki i książki, które są na stosie, i ustawiam je wszystkie, jeśli przychodzą nowe dane. Jeśli zostały dokonane jakieś aktualizacje w piosenkach znajdujących się w tej tablicy, chcę używać nowszych, zaktualizowanych wersji przy następnym ładowaniu. Jednym ze sposobów na osiągnięcie tego celu jest niezapisywanie wszystkiego, co masz, lub możesz, zamiast tego, po prostu ustawić ścieżkę wyboru przed pobraniem zaktualizowanych danych modelu dla każdego identyfikatora
 
-> So you can use the ID because that should not have changed to fetch the new ones and then set the path from there. This setter should actually only be called once during launch. So this is when we use when we launch we want to set our selection state once but we need to decode this. We need to create the data multiple times because every time our selection path changes we want to save it to as a data in user defaults with scene storage. So I need to know when the selection path changes. So there's one way they did it in the sample project is using a combination of combine and async await and this is a little bit more difficult and yeah it really depends if you want to use it. It does work. So we have because we want to know when the whole for me I have an alternative but if you want to if you save the whole selection state manager we need to know when this changes. So this is in the object will change publisher and we need to create a async publisher for this. Yeah object will change sequence the types is a yeah the types are interesting but this is normal. So what we want to have is an async publisher. Okay so for what I want to use is the observed the object will change publisher because it's the one that where my view model changes. So every time this is triggered I know something changed and then I can save my data again. So this is in the object will change and in order to transform this to something async. So you see this is the this is a newer feature which is async publisher although it's probably already there for two versions. So values I was going to complain because types on match. 
->
+ 
 
 Tak więc możesz użyć identyfikatora (ID), ponieważ ten identyfikator nie powinien ulec zmianie, aby pobrać nowe dane, a następnie ustawić ścieżkę na podstawie tych danych. Ta metoda ustawiania powinna być wywoływana tylko raz podczas uruchamiania. Kiedy uruchamiamy aplikację, chcemy ustawić nasz stan wyboru tylko raz, ale musimy to zdekodować wielokrotnie. Za każdym razem, gdy zmienia się nasza ścieżka wyboru, chcemy zapisać ją jako dane w UserDefaults z użyciem Scene Storage. Potrzebuję wiedzieć, kiedy zmienia się nasza ścieżka wyboru. W projekcie przykładowym zastosowano pewien sposób na połączenie combine oraz async/await, co jest nieco bardziej zaawansowane i zależy od preferencji użytkownika. To działa. Potrzebujemy tego, ponieważ chcemy wiedzieć, kiedy cały stan naszego menedżera wyboru ulega zmianie. To jest w wydawcy objectWillChange, który musi być przekształcony w async publisher. Chcemy używać właśnie tego obiektu, ponieważ zmienia się wraz ze zmianami w naszym modelu widoku. Za każdym razem, gdy jest aktywowany, wiemy, że coś się zmieniło, i możemy ponownie zapisać nasze dane. W celu przekształcenia go w coś async, korzystamy z objectWillChange i musimy stworzyć async publisher. To jest nowa funkcja, ale prawdopodobnie już jest dostępna od dwóch wersji. Początkowo miałem pewne problemy z dopasowaniem typów, ale teraz jest już dobrze.
 
-> Yes because this is so this is returning an async publisher and self is the one that was before. Just trying to figure out how just so this is a object maybe I just should have published a copy or everything object will change publisher and it doesn't notice because I need to import combine combine should have known that this is the most important thing. Always forget to import combine. Okay this is now a sequence of all of the previous values but usually when you attach this you only want to have the recent one. So they used buffer of one so they just want to have the last one keep by request and a full job oldest. And now the types don't match again. So this is now I'm just going to copy the type from the error. Okay now we have this object will change sequence and can use the task modifier that was the whole point because the task modifier is connected to the lifecycle of this view. So whenever we have this root view or this tab view it will perform this as long as it's there. So even every time I push this is alive. And the first thing I want to do is I have here my data. The first time I'm launching I want to take my data and set this to my navigation state. So I need to take it from here from the scene storage and place it in my state manager. So this is my navigation state managers data property and I'm setting the safe navigation state data there. You can also if this is no like the first time this is not a problem because then it wants you to set up. This is when I said this and if I if it's not and it doesn't continue and I'm not going to set my selection path here. It is the first time this is free set during launch. 
->
+
 
 Tak, ponieważ to zwraca async publisher, a self to jest ten, który był wcześniej. Próbuję właśnie zrozumieć, tak więc to jest obiekt, może powinienem opublikować kopię albo wszystko, objectWillChange publisher, ale to nie działa, bo muszę zaimportować Combine. Zawsze zapominam, żeby zaimportować Combine. Okej, teraz to jest sekwencja wszystkich poprzednich wartości, ale zazwyczaj, kiedy dołączasz to, chcesz mieć tylko tę ostatnią. Użyli więc bufora o rozmiarze jeden, bo chcą mieć tylko ostatnią wartość. I teraz znowu typy nie pasują. No więc teraz po prostu skopiuję typ z błędu. Okej, teraz mamy tę sekwencję objectWillChange i możemy użyć modyfikatora task, a to było właśnie główne założenie, bo modyfikator task jest połączony z cyklem życia tego widoku. Więc za każdym razem, gdy mamy ten widok główny lub ten widok karty, zostanie on wykonany, dopóki będzie istnieć. Nawet za każdym razem, gdy wciskam, to jest nadal aktywne. I pierwsza rzecz, jaką chcę zrobić, to mam tutaj swoje dane. Pierwszy raz, gdy uruchamiam, chcę wziąć moje dane i ustawić je jako stan nawigacji. Więc muszę wziąć je stąd, ze Scene Storage, i umieścić w moim menedżerze stanu. To jest właśnie właściwość danych mojego menedżera stanu nawigacji i ustawiam tam bezpieczne dane stanu nawigacji. Jeśli to jest pierwszy raz, to nie ma problemu, bo wtedy chce, żebym to skonfigurował. To jest to, o czym mówiłem wcześniej. Jeśli to nie jest pierwszy raz, to po prostu nie kontynuuję i nie ustawiam mojej ścieżki wyboru tutaj. To jest ustawiane tylko podczas pierwszego uruchomienia.
 
-> And now every time I and the other way around because I never actually set this data here I need to get the updates for my navigation state manager the navigation state managers and now I can use this object will change sequence. This is a sequence I not really I don't know much about async await so please don't expect a good explanation from me now. But it's the because it's a wait we need to use here. Await keyword this is a sequence we don't really care about what values are there we just want to execute and say our navigation state data is now coming from the state managers data. So this is safe state to use our defaults. My app doesn't really do everything correctly because I have a yeah here I have this tab view with everything in. So let's just test this by itself. If I only have this for tab view in my app so instead of the content view I use here my third tab view so we can test this and learn we need to launch a couple of times to see. Okay so this is the root view I need to go somewhere in one of my stacks. Okay so I navigated two levels deep now I close this is for the user defaults to work properly otherwise it needs a little bit it doesn't always save them when I launch again I'm in the same state which is this two levels deep. You can also test this by going to a different one settings and then launch again and now we go back to settings. So this is working fine with this task modifier. 
->
+
 
 I teraz za każdym razem, kiedy i odwrotnie, ponieważ nigdy faktycznie nie ustawiałem tych danych tutaj, potrzebuję aktualizacji dla mojego menedżera stanu nawigacji. Teraz mogę użyć tej sekwencji objectWillChange. To jest sekwencja, którą nie bardzo znam, bo nie znam się za dobrze na async/await, więc proszę, nie oczekuj ode mnie teraz dobrej wyjaśnienia. Ale to dlatego, że jest to async/await, musimy użyć słowa kluczowego await tutaj. To jest sekwencja, nie obchodzi nas, jakie są tam wartości, chcemy po prostu wykonać akcję i powiedzieć, że nasze dane stanu nawigacji pochodzą teraz z danych menedżera stanu. Więc to jest bezpieczne, aby używać UserDefaults. Moja aplikacja nie robi wszystkiego dobrze, bo mam tu ten widok karty ze wszystkim w środku. Tak więc przetestujmy to samodzielnie. Jeśli mam to tylko dla widoku karty w mojej aplikacji, zamiast ContentView używam mojego trzeciego widoku karty, więc możemy to przetestować i zobaczyć, czy działa. Musimy uruchomić kilka razy, żeby zobaczyć. Okej, to jest widok główny, muszę gdzieś przejść w jednym z moich stosów. Okej, teraz jestem na dwa poziomy głęboko, teraz to zamykam. To jest dla UserDefaults, żeby działały poprawnie, bo czasami nie zawsze zapisują, gdy ponownie uruchamiam. Ponownie jestem w tym samym stanie, który ma dwa poziomy głęboko. Można to także przetestować, przechodząc do innego ustawienia, a potem ponownie uruchamiając i teraz wracamy do ustawień. Więc to działa dobrze z tym modyfikatorem task.
 
-> Alternatively if you don't want to use the task you can use because I mean in my case I have the possibility because I only store one property anyway. So in case of on receive of my navigation state manager selected path. Okay I need to have this is with a publisher so the dollar sign needs to be in front of the selection path. So this is now the updated path. I actually don't really need this because I had this convenience function so in my navigation state managers data I can store this to my navigation data. So this is the save state to user defaults thing. So this is the saving and then we store during launch we can use on appear. So doing on appear I want to use the navigation state the navigation data and reset this to my navigation managers data. So this is the restore during launch. I do not the one problem with this is I don't really want to save the very first element because this is the empty one. So I can use here drop first and we can try. Okay so we are going back to the original settings and now I can navigate to one of the deeper levels I leave. We trying the same and we go back to this level. I also want to make sure that I am going correctly to the root view if I'm there.
->
+
 
 Alternatywnie, jeśli nie chcesz używać modyfikatora task, możesz zastosować inne podejście, zwłaszcza jeśli przechowujesz tylko jedną właściwość. W moim przypadku mam tę możliwość, ponieważ przechowuję tylko jedną właściwość. W przypadku otrzymania informacji od mojego menedżera stanu nawigacji dotyczącej ścieżki wyboru, muszę mieć to związane z wydawcą, więc znak dolara musi być przed właściwością selectionPath. To jest zaktualizowana ścieżka. Właściwie nie potrzebuję tego, ponieważ mam tę funkcję ułatwiającą, która pozwala mi zapisać moje dane nawigacyjne w menedżerze stanu nawigacji. To jest funkcja saveStateToUserDefaults. Jest to zapis, a podczas uruchamiania możemy użyć modyfikatora onAppear. W momencie pojawienia się widoku chcę użyć danych nawigacyjnych i przywrócić je do mojego menedżera stanu nawigacji. To jest przywracanie stanu podczas uruchamiania. Jedynym problemem jest to, że nie chcę zapisywać bardzo pierwszego elementu, ponieważ jest on pusty. Mogę użyć funkcji dropFirst do pominięcia pierwszego elementu i spróbować tego. Okej, więc wracamy do pierwotnych ustawień, teraz mogę przejść do jednego z głębszych poziomów i wrócić. Próbujemy tego samego i wracamy do tego poziomu. Chcę się także upewnić, że wracam poprawnie do widoku głównego, jeśli jestem tam.
 
->  So I leave now and I'm indeed on the root view. So you can do it is this two ways as you see the fancy async away combined way or here with the only combine where I used to separate things one time the on receive to get the updates from the selection path. This works because I really only have one property that I actually care about. If you have multiple things you need to use I mean you can still use the dollar object will change the object will change publisher because I'm actually not using this thing. So this is also working. Okay so you have and you can use this one if you have multiple properties that you need to save or in my case I really have only one but I guess maybe should leave it this way because the most cleanest and future proof way. So this is it for navigation stack. We looked at navigation links how to create a programmatic navigation navigation path navigation destination and how to do state restoration. If you want to see more for example about navigation split view I'm going to link that video here. So go watch that if you are interested because navigation split view covers it all. It's obviously more interesting if you want to go for iPad or Mac. So I go watch that if you're interested give this video a like and subscribe until next time. Happy coding. you you you
+
 
 Tak więc teraz wychodzę i rzeczywiście jestem na widoku głównym. Widzisz, możesz zrobić to na dwa sposoby: za pomocą zaawansowanej metody async/await lub tutaj tylko z użyciem Combine, gdzie użyłem dwóch oddzielnych części: raz onReceive do uzyskania aktualizacji ze ścieżki wyboru. To działa, ponieważ naprawdę interesuje mnie tylko jedna właściwość. Jeśli masz wiele rzeczy, o które chcesz dbać, nadal możesz użyć objectWillChange lub objectWillChange publisher, chociaż nie używam tego w rzeczywistości. Więc to też działa. Okej, więc masz dwie opcje, i możesz używać tej pierwszej, jeśli masz wiele właściwości, które chcesz zapisać, lub w moim przypadku mam naprawdę tylko jedną, ale może warto zostawić to w ten sposób, bo to najczystszy i przyszłościowo najbardziej niezawodny sposób. 
 

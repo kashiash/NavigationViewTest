@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		760C19532AFE316C0025B992 /* NavigationStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760C19522AFE316C0025B992 /* NavigationStateManager.swift */; };
 		76952C042AFB9941005BC72D /* NavigationViewTestApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76952C032AFB9941005BC72D /* NavigationViewTestApp.swift */; };
 		76952C062AFB9941005BC72D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76952C052AFB9941005BC72D /* ContentView.swift */; };
 		76952C082AFB9943005BC72D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 76952C072AFB9943005BC72D /* Assets.xcassets */; };
@@ -29,6 +30,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		760C19522AFE316C0025B992 /* NavigationStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStateManager.swift; sourceTree = "<group>"; };
 		76952C002AFB9941005BC72D /* NavigationViewTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NavigationViewTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		76952C032AFB9941005BC72D /* NavigationViewTestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationViewTestApp.swift; sourceTree = "<group>"; };
 		76952C052AFB9941005BC72D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -126,6 +128,7 @@
 			isa = PBXGroup;
 			children = (
 				76952C262AFD1F51005BC72D /* ModelDataManager.swift */,
+				760C19522AFE316C0025B992 /* NavigationStateManager.swift */,
 				76952C282AFD1FA4005BC72D /* ThirdTabView.swift */,
 				76952C2A2AFD20A3005BC72D /* RootView.swift */,
 				76952C2C2AFD299C005BC72D /* SongDetailView.swift */,
@@ -220,6 +223,7 @@
 				76952C312AFD29C3005BC72D /* MovieDetailView.swift in Sources */,
 				76952C062AFB9941005BC72D /* ContentView.swift in Sources */,
 				76952C182AFBA99A005BC72D /* DetailView.swift in Sources */,
+				760C19532AFE316C0025B992 /* NavigationStateManager.swift in Sources */,
 				76952C1C2AFC284F005BC72D /* SecondViewTab.swift in Sources */,
 				76952C292AFD1FA4005BC72D /* ThirdTabView.swift in Sources */,
 				76952C162AFBA21E005BC72D /* FirstTabView.swift in Sources */,
