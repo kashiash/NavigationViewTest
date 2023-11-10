@@ -20,17 +20,19 @@ struct ThirdTabView: View {
         NavigationStack {
             RootView(model: model)
                 .navigationDestination(for: SelectionState.self) { state in
-                    switch state {
-                    case .song(let song):
-                        SongDetailView(song: song)
-                    case .movie(let movie):
-                        MovieDetailView(movie: movie)
-                    case .book(let book):
-                        BookDetailView(book: book)
-                    case .settings:
-                        SettingsView()
+                    Group {
+                        switch state {
+                        case .song(let song):
+                            SongDetailView(song: song)
+                        case .movie(let movie):
+                            MovieDetailView(movie: movie)
+                        case .book(let book):
+                            BookDetailView(book: book)
+                        case .settings:
+                            SettingsView()
+                        }
                     }
-
+                    .environmentObject(model)
                 }
 
         }

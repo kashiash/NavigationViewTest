@@ -13,7 +13,10 @@ struct BookDetailView: View {
         VStack {
             Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
             Text(book.title)
-
+            Divider()
+            ForEach(1...4, id: \.self) { id in
+                NavigationLink("suggestion \(id)", value: SelectionState.book(Book(title: "suggestion no \(id)")))
+            }
         }
     }
 }

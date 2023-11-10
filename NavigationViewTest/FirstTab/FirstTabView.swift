@@ -57,7 +57,9 @@ struct FirstTabView: View {
                 Text("Path")
                 Text("Number of detail views on stack: \(path.count)")
                 Button {
-                    path.removeLast()
+                    if path.count > 0 {
+                        path.removeLast()
+                    }
                 } label: {
                     Text("go back one view")
                 }

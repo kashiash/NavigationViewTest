@@ -11,26 +11,29 @@ struct SecondViewTab: View {
     let books = Book.examples()
     @State private var path =  [Book]()
     var body: some View {
-        NavigationStack(path: $path) {
-            List {
-                ForEach(books) { book in
-                    NavigationLink(book.title,value:book)
-                }
-
-            }
-            .navigationDestination(for: Book.self) { book in
-                BookDestinationView(book: book)
-            }
-
-        }
+        
         VStack {
-            ForEach(path) {
-                book in
-                Text(book.title)
+            NavigationStack {
+                List {
+                    ForEach(books) { book in
+                        NavigationLink(book.title,value:book)
+                    }
+                    
+                }
+                .navigationDestination(for: Book.self) { book in
+                    BookDestinationView(book: book)
+                }
+                
             }
-            Button("Go to favorities", systemImage: "star.fill") {
-                guard let book = books.first else { return }
-                path = [book]
+            VStack {
+                ForEach(path) {
+                    book in
+                    Text(book.title)
+                }
+                Button("Go to favorities", systemImage: "star.fill") {
+                    guard let book = books.first else { return }
+                    path = [book]
+                }
             }
         }
     }
@@ -38,6 +41,7 @@ struct SecondViewTab: View {
 #Preview {
     SecondViewTab()
 }
-#Preview(" fit", traits: .sizeThatFitsLayout) {
-    SecondViewTab()
+#Preview {
+    ContentView()
 }
+

@@ -624,20 +624,148 @@ struct RootView: View {
 }
 ```
 
-Okej, teraz wracając do mojego widoku trzeciej karty, destynacje, jeśli chcę teraz używać tych, muszą zostać zmienione, ponieważ teraz to już nie działa. Więc muszę teraz używać `navigation state`. Teraz to już nie jest książka, to jest stan, a ponieważ to jest enum, mogę użyć switch case. Tak więc dla `state` mam `case.song` i przypisuję to do `let song`, dla `case.movie` mam `let movie`, dla `case.book` mam `let book`, a dla `case.settings` nie mam żadnych widoków szczegółowych. Mogę użyć jednego z tych. Muszę jednak stworzyć widoki szczegółowe dla piosenki, filmu i ustawień. Więc po prostu szybko je stworzę. Widok szczegółowy piosenki. Jeśli nie chcesz tego robić samodzielnie, możesz po prostu użyć przykładów, które stworzyłem, i użyć plików z mojego repozytorium na GitHubie. Okej, teraz mam ten widok szczegółowy piosenki. Potem widok ustawień. Po prostu ustawienia. Mogłem użyć widoku destynacji książki dla szczegółów, ale tutaj wartość to typ książki, a chcę użyć innego. Więc po prostu stwórzmy inny widok szczegółowy książki. Właściwie prawdopodobnie powinienem zmienić nazwę tego. Więc możemy zasadniczo używać wszystkiego takiego samego, z wyjątkiem tego, że wartość teraz musi być moim stanem wyboru dla książki i przypisaniem dowolnej książki, którą chcę tutaj pokazać. Okej, nadal nie buduje się, ponieważ mój widok główny, ponieważ mój widok karty trzeciej jest zepsuty. Okej, po prostu dodajmy tutaj mój widok szczegółowy piosenki dla piosenki, mój widok szczegółowy filmu, mój widok szczegółowy książki i mój widok ustawień, i zapomniałem dodać widok szczegółowy dla filmu. Więc stworzę kolejny. Prawdopodobnie powinienem był dodać wszystkie szczegóły filmu przed zmianą czegokolwiek. Okej, po prostu pokazuję tutaj, jakie widoki mamy, szczegóły dla filmu i tytuł filmu. Teraz mam wszystkie moje widoki szczegółowe. Więc to jest widok szczegółowy filmu dla filmu.
+Okej, teraz wracając do mojego widoku trzeciej karty, destynacje, jeśli chcę teraz używać tych, muszą zostać zmienione, ponieważ teraz to już nie działa. Więc muszę teraz używać `navigation state`. Teraz to już nie jest książka, to jest stan, a ponieważ to jest enum, mogę użyć switch case. Tak więc dla `state` mam `case.song` i przypisuję to do `let song`, dla `case.movie` mam `let movie`, dla `case.book` mam `let book`, a dla `case.settings` nie mam żadnych widoków szczegółowych. Mogę użyć jednego z tych. Muszę jednak stworzyć widoki szczegółowe dla piosenki, filmu i ustawień. Więc po prostu szybko je stworzę. Widok szczegółowy piosenki. Jeśli nie chcesz tego robić samodzielnie, możesz po prostu użyć przykładów, które stworzyłem, i użyć plików z mojego repozytorium na GitHubie. Okej, teraz mam ten widok szczegółowy piosenki. 
 
-> So this already looks nice and clean because here I have this navigation stick and one root view. So this is the main view you see on the right and I have separately now the definition or set what detail views I want to show. So one advantage of this navigation destination modifier much more clean and organized. Maybe I'm going to well maybe you should I should change the settings to put it up here with this gear icon. You can try and all of them are working. All right no I didn't. I only added more details for the book suggestion. You could also add more links for let's say songs and in this case I probably should just use this the data that I have here my model manager. So in the song detail view I can also add a divider text something like people also liked and now I want to show some of the list of all the other songs. OK I only have three. You could probably fetch different ones. They are on my model here and I want to simply because I probably need them everywhere prefer to have this in the environment. So this is environment object model manager and now I can use this in my song detail. So by accessing it from the environment object var model data this is of type model manager. Preview will crash unless I add an instance of this type model manager as all the data. And now I can use here for each of my model data songs. You could also link different things. So adding here navigation link with value and title so song for example if you want to have different ones add a song icon. 
->
+```swift
+struct SongDetailView: View {
+    let song: Song
+    var body: some View {
+        VStack{
+            Text("Song detail")
+            Text(song.title)
+            Text(song.artist)
+            Text("\(song.year)")
+        }
+    }
+}
 
-To już wygląda ładnie i czysto, ponieważ mam tutaj ten stos nawigacyjny i jeden widok główny. Tak więc jest to główny widok, który widzisz po prawej stronie, a ja mam teraz osobno definicję lub zestaw widoków szczegółowych, które chcę pokazać. Jedną z zalet tego modyfikatora nawigacji jest znacznie czystsze i zorganizowane. Być może powinienem przenieść ustawienia tutaj i umieścić je z ikoną zębatki. Możesz to wypróbować, wszystkie działają. Okej, nie dodaję więcej informacji. Dodano więcej informacji tylko dla sugestii książki. Możesz również dodać więcej linków dla na przykład piosenek, a w tym przypadku prawdopodobnie powinieneś po prostu użyć danych, które mam tutaj w moim menedżerze modeli. Więc w widoku szczegółowym dla piosenki mogę dodać podział i tekst, na przykład "Inni też polubili", i teraz chcę pokazać listę wszystkich innych piosenek. Okej, mam tylko trzy. Prawdopodobnie możesz pobrać różne. Są w moim modelu tutaj, i chcę to po prostu, ponieważ prawdopodobnie będę ich potrzebował wszędzie, dodać do środowiska. Więc to jest `environmentObject modelManager`, a teraz mogę to użyć w moim widoku szczegółowym dla piosenki. Tak więc, dostęp do niego z obiektu środowiskowego `var modelData`, jest to typ `modelManager`. Podgląd będzie się zawieszał, chyba że dodam instancję tego typu `modelManager` jako wszystkie dane. I teraz mogę użyć tutaj dla każdej z moich piosenek z `modelData songs`. Można również podlinkować różne rzeczy. Dodawanie tutaj nawigacyjnego łącza z wartością i tytułem, na przykład piosenka, jeśli chcesz mieć różne, dodaj ikonę piosenki.
+#Preview {
+    SongDetailView(song: Song.examples().randomElement()!)
+}
+```
 
-> Oh yeah music. This is a label with the song's title and the system image is the note. Probably put this in a VStack with leading alignment and noted the title together. Okay now we have a little bit more navigation building up. OK we have a crash. So this kind of things don't usually work very well. I'm actually I mean kind of on purpose showed you this. So in order to run this in the simulator I actually need to add this to the simulator. I didn't do that so far. So in my content view I will now add this tab view that I was talking about all the time and never actually did. So I want to have my first tab view my second tab view and my third tab view. And then adding here tab items. Just with a random icon. Same for the other two. OK this is the typical way of using this. OK finally let's run this. Go to my third tab press on one of the songs. OK. Fatal error. Good. This is now the information. This is much. This gives me actually some information what I did wrong. So the environment model model data manager was not found. So my song detail view doesn't have this in the environment. Now I'm going to check where I created an instance of my song detail view. This was in the third tab view here and it's the navigation destination song detail view. I did add this environment object afterwards thinking probably getting it everywhere but it doesn't. You need to if you put it afterwards it just doesn't get it. So just a little hint for the navigation destination modifier. You need to attach this here too. So let's just create a group because I need to do this. Probably more common to add this to all views that are in there. 
->
+Film 
 
-Oh tak, muzyka. To jest etykieta z tytułem piosenki, a obraz systemowy to nuta. Prawdopodobnie umieść to w `VStack` z wiodącym wyrównaniem i połącz tytuł z nutą. Okej, teraz mamy trochę więcej nawigacji. Okej, mamy awarię. Takie rzeczy zwykle nie działają bardzo dobrze. Właściwie celowo to pokazałem. Aby uruchomić to w symulatorze, muszę to faktycznie dodać do symulatora. Nie zrobiłem tego do tej pory. Więc w moim widoku zawartości teraz dodam ten widok karty o którym cały czas mówiłem, ale nigdy go faktycznie nie utworzyłem. Więc chcę mieć mój pierwszy widok karty, mój drugi widok karty i mój trzeci widok karty. A potem dodaję tutaj elementy karty. Po prostu z losową ikoną. To samo dla pozostałych dwóch. Okej, to jest typowy sposób użycia tego. Okej, w końcu uruchommy to. Przejdźmy do mojej trzeciej karty, kliknijmy na jedną z piosenek. Okej. Błąd krytyczny. Dobrze. Teraz mam informacje. To daje mi właściwie jakieś informacje o tym, co zrobiłem źle. Więc model środowiska `modelDataManager` nie został znaleziony. Więc mój widok szczegółowy dla piosenki nie ma tego w środowisku. Teraz sprawdzę, gdzie utworzyłem instancję mojego widoku szczegółowego dla piosenki. Było to w moim widoku trzeciej karty tutaj, a jest to destynacja nawigacji `songDetailView`. Później dodałem to `environmentObject`, myśląc, że prawdopodobnie dostanę to wszędzie, ale nie dostanę. Jeśli dodasz to później, po prostu tego nie dostajesz. Więc mała wskazówka dotycząca modyfikatora nawigacji. Musisz to tutaj również dołączyć. Więc po prostu stwórzmy grupę, ponieważ muszę to zrobić. Prawdopodobnie bardziej powszechne jest dodanie tego do wszystkich widoków, które są tam zawarte.
+```swift
+struct MovieDetailView: View {
+    let movie: Movie
+    var body: some View {
+        VStack {
+            Text("Movie detail view")
+            Text(movie.title)
+        }
+    }
+}
 
-> OK so I'm wrapping my switch case here in a group. So this view modifier is then added to all of my views inside. It hopefully means that everything is working now. Go to my third tab. And yes we have the detail and I actually see all the songs. Does not work. OK. At least now the information seems to be useful. A link is presenting a value of type song but there is no matching navigation destination declared visible for the location of the link. And also tells you how they are actually looking for this navigation destination things. So they're first looking in the surrounding navigation stack. So they're going the view tree up and if they don't find anything there they are looking in the navigation split view. This is possible you can stack them inside of each other. OK let's see what I did in the song detail view. Ah yeah actually I used the song value not my new selection value. So thank you for the very informative help. Not this weird you have to interpret language. I mean this was in a very clear language. Nice nice. Let me try again. OK now everything seems to work. OK so make sure you are putting it. You need to add all the environment objects again in the navigation destinations. I'm not even sure if it's the environment values too. Like if you change the environment value for color scheme. 
->
+#Preview {
+    MovieDetailView(movie: Movie.examples().randomElement()!)
+}
+
+```
+
+Potem widok ustawień. 
+
+```swift
+struct SettingsView: View {
+    var body: some View {
+        Text("Settings view")
+    }
+}
+
+#Preview {
+    SettingsView()
+}
+```
+
+ Mogłem użyć widoku destynacji książki dla szczegółów, ale tutaj wartość to typ książki, a chcę użyć innego. Więc po prostu stwórzmy inny widok szczegółowy książki. Właściwie prawdopodobnie powinienem zmienić nazwę istniejącego np. na `BookDestinationView`. Więc możemy zasadniczo używać wszystkiego takiego samego, z wyjątkiem tego, że wartość teraz musi być moim stanem wyboru dla książki i przypisaniem dowolnej książki, którą chcę tutaj pokazać. Okej, nadal nie buduje się, ponieważ mój widok główny, ponieważ mój widok karty trzeciej wymaga kilku poprawek. Okej, po prostu dodajmy tutaj mój widok szczegółowy piosenki dla piosenki, mój widok szczegółowy filmu, mój widok szczegółowy książki i mój widok ustawień.
+
+```swift
+struct ThirdTabView: View {
+    @StateObject var model = ModelDataManager()
+    var body: some View {
+        NavigationStack {
+            RootView(model: model)
+                .navigationDestination(for: SelectionState.self) { state in
+                    switch state {
+                    case .song(let song):
+                        SongDetailView(song: song)
+                    case .movie(let movie):
+                        MovieDetailView(movie: movie)
+                    case .book(let book):
+                        BookDetailView(book: book)
+                    case .settings:
+                        SettingsView()
+                    }
+                }
+        }
+    }
+}
+```
+
+
+
+Tak więc jest to główny widok, który widzisz po prawej stronie, a ja mam teraz osobno definicję lub zestaw widoków szczegółowych, które chcę pokazać. Jedną z zalet tego modyfikatora nawigacji jest znacznie czystsze i zorganizowane. Być może powinienem przenieść ustawienia tutaj i umieścić je z ikoną trybiki. Możesz to wypróbować, wszystkie działają. Okej, nie dodaję więcej informacji. Dodano więcej informacji tylko dla sugestii książki. Możesz również dodać więcej linków dla na przykład piosenek, a w tym przypadku powinieneś po prostu użyć danych, które mam tutaj w moim menedżerze modeli. Więc w widoku szczegółowym dla piosenki mogę dodać podział i tekst, na przykład "Inni też polubili", i teraz chcę pokazać listę wszystkich innych piosenek. 
+
+Te dane są w moim modelu `ModelDataManager`, ponieważ prawdopodobnie będę ich potrzebował wszędzie, dodać do środowiska  `environmentObject (modelManager)`, a teraz mogę to użyć w moim widoku szczegółowym dla piosenki. Tak więc, dostęp do niego z obiektu środowiskowego `var modelData`, jest to typ `modelManager`. Podgląd będzie się zawieszał, chyba że dodam instancję tego typu `modelManager` jako wszystkie dane. I teraz mogę użyć tutaj dla każdej z moich piosenek z `modelData songs`. Można również podlinkować różne rzeczy. Dodawanie tutaj nawigacyjnego łącza z wartością i tytułem, na przykład piosenka, jeśli chcesz mieć różne, dodaj ikonę piosenki.
+
+```swift
+struct SongDetailView: View {
+    let song: Song
+    @EnvironmentObject var model: ModelDataManager
+    var body: some View {
+        VStack{
+            Text("Song detail")
+            Text(song.title)
+            Text(song.artist)
+            Text("\(song.year)")
+            Divider()
+            VStack(alignment: .leading) {
+                Text("Inne piosenki do polubienia")
+
+                ForEach(model.songs) { song in
+                    NavigationLink(value: song) {
+                        Label(song.title,systemImage: "music.note")
+                    }
+                }
+            }
+        }
+    }
+  }
+  #Preview {
+    SongDetailView(song: Song.examples().randomElement()!)
+        .environmentObject(ModelDataManager())
+}
+```
+
+
+
+To jest etykieta z tytułem piosenki, a obraz systemowy to nuta. Prawdopodobnie umieść to w `VStack` z wiodącym wyrównaniem i połącz tytuł z nutą. Okej, teraz mamy trochę więcej nawigacji. Okej, mamy awarię. Takie rzeczy zwykle nie działają bardzo dobrze. Aby uruchomić to w symulatorze, muszę to ć zaqkladki do głównego okna. Nie zrobiłem tego do tej pory. Więc w moim widoku zawartości teraz dodam ten widok karty o którym cały czas mówiłem, ale nigdy go faktycznie nie utworzyłem. 
+
+```swift
+struct ContentView: View {
+    var body: some View {
+        TabView{
+            FirstTabView()
+                .tabItem {
+                    Label("First", systemImage: "square.grid.3x3.middleleft.filled")
+                }
+            SecondViewTab()
+                .tabItem {
+                    Label("Second", systemImage: "book")
+                }
+
+            ThirdTabView()
+                .tabItem {
+                    Label("Third", systemImage: "music.quarternote.3")
+                }
+        }
+    }
+}
+```
+
+Mamy nasze zkładki na głównym oknie aplikacji. Teraz, przystąpmy do uruchomienia tego. Przejdźmy do trzeciej karty, a następnie kliknijmy na jedną z piosenek. W porządku, pojawił się krytyczny błąd. Wygląda na to, że nie można odnaleźć modelu środowiskowego `modelDataManager`. Widok szczegółowy dla piosenki, który próbuję użyć, nie ma dostępu do tego środowiska. Teraz muszę sprawdzić, gdzie dokładnie tworzę instancję mojego widoku szczegółowego dla piosenki. Zrobiłem to w moim widoku trzeciej karty tutaj, a jest to destynacja nawigacyjna `songDetailView`. Później dodałem to jako `environmentObject`, zakładając, że dostanę do tego dostęp wszędzie, ale niestety tak się nie dzieje. Stąd moja sugestia dotycząca modyfikatora nawigacji. Musisz również dodać to tutaj. Stworzymy więc grupę, ponieważ to jest niezbędne. Prawdopodobnie bardziej zalecane jest dodanie tego do wszystkich widoków zawartych w tej grupie.
+
+
 
 Dobrze, więc owijam moje `switch case` tutaj w grupę. Więc ten modyfikator widoku jest dodawany do wszystkich moich widoków wewnątrz niego. Mam nadzieję, że teraz wszystko działa. Przejdźmy do mojej trzeciej karty. I tak, mamy szczegóły i widzę wszystkie piosenki. Nie działa. Okej, przynajmniej teraz informacje wydają się być przydatne. Łącze prezentuje wartość typu piosenka, ale nie ma zadeklarowanej odpowiadającej mu widocznej destynacji nawigacji. I mówią ci także, jak właściwie szukają tych destynacji nawigacji. Najpierw sprawdzają otaczający stos nawigacyjny. Idą w górę drzewa widoku i jeśli tam nic nie znajdą, sprawdzają podział nawigacji. Jest to możliwe, możesz je układać jedno wewnątrz drugiego. Okej, zobaczmy, co zrobiłem w widoku szczegółowym dla piosenki. Ah tak, rzeczywiście użyłem wartości `song`, a nie mojej nowej wartości wyboru. Więc dziękuję za bardzo pouczającą pomoc. Nie to dziwne, trzeba interpretować jakąś dziwną mowę. Chodzi mi o to, że to było w bardzo czytelny sposób wyjaśnione. Ładnie, ładnie. Spróbujmy jeszcze raz. Okej, teraz wszystko wydaje się działać. Okej, więc upewnij się, że dodajesz wszystkie obiekty środowiska ponownie w destynacjach nawigacji. Nawet nie jestem pewien, czy to także dotyczy wartości środowiskowych, na przykład dla schematu kolorów.
 
